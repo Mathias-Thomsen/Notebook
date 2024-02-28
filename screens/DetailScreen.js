@@ -1,29 +1,37 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { database } from '../firebase';
+import useFirebase from './firebase/useFirebase'; // Opdater stien efter behov
 
 export default function DetailScreen({ route, navigation }) {
-  const { noteId, noteText } = route.params; // InitialNoteText omdøbt til noteText for enkelhed
+  const { noteId, noteText } = route.params;
   const [editedNoteText, setEditedNoteText] = useState(noteText);
+  const { updateNote, deleteNote } = useFirebase(); // Brug updateNote og deleteNote fra useFirebase
 
-  const saveEditedNote = async () => {
+  const handleSaveEditedNote = async () => {
+    if (editedNoteText.trim().length === 0) {
+      alert('Note text cannot be empty. Then use the delete button');
+      return;
+    }
+  
     try {
-      await updateDoc(doc(database, "notes", noteId), { text: editedNoteText });
+      await updateNote(noteId, editedNoteText);
       navigation.goBack();
     } catch (error) {
+      alert('An error occurred while saving the note.');
       console.error("Error updating document:", error);
     }
   };
-
-  const deleteNote = async () => {
+  
+  const handleDeleteNote = async () => {
     try {
-      await deleteDoc(doc(database, "notes", noteId));
+      await deleteNote(noteId);
       navigation.goBack();
     } catch (error) {
+      alert('An error occurred while deleting the note.');
       console.error("Error deleting document:", error);
     }
   };
+  
 
   return (
     <View style={styles.container}>
@@ -34,8 +42,8 @@ export default function DetailScreen({ route, navigation }) {
         onChangeText={setEditedNoteText}
         value={editedNoteText}
       />
-      <Button title="Save" onPress={saveEditedNote} />
-      <Button title="Delete" onPress={deleteNote} />
+      <Button title="Save" onPress={handleSaveEditedNote} />
+      <Button title="Delete" onPress={handleDeleteNote} />
     </View>
   );
 }
