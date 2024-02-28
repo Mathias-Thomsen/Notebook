@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Button, TextInput, FlatList, StatusBar, StyleSheet, Text } from 'react-native';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { collection } from 'firebase/firestore';
-import { database } from './firebase/firebaseConfig';
-import useFirebase from './firebase/useFirebase'; // Opdater stien efter behov
+import { database } from '../firebase/firebaseConfig';
+import useFirebase from '../firebase/useFirebase'; // Opdater stien efter behov
 
 export default function HomeScreen({ navigation }) {
   const [text, setText] = useState('');

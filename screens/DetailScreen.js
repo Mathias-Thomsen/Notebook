@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import useFirebase from './firebase/useFirebase'; // Opdater stien efter behov
+import useFirebase from '../firebase/useFirebase'; // Opdater stien efter behov
 
 export default function DetailScreen({ route, navigation }) {
   const { noteId, noteText } = route.params;
