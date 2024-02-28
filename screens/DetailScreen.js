@@ -1,27 +1,27 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Button } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { database } from '../firebase';
 
 export default function DetailScreen({ route, navigation }) {
-  const { noteId, noteText: initialNoteText } = route.params;
-  const [noteText, setNoteText] = useState(initialNoteText);
+  const { noteId, noteText } = route.params; // InitialNoteText omdøbt til noteText for enkelhed
+  const [editedNoteText, setEditedNoteText] = useState(noteText);
 
   const saveEditedNote = async () => {
-    const storedNotes = await AsyncStorage.getItem('@myNotes');
-    let notes = storedNotes ? JSON.parse(storedNotes) : [];
-
-    const updatedNotes = notes.map(note => {
-      if (note.id === noteId) {
-        return { ...note, text: noteText };
-      }
-      return note;
-    });
-
     try {
-      await AsyncStorage.setItem('@myNotes', JSON.stringify(updatedNotes));
+      await updateDoc(doc(database, "notes", noteId), { text: editedNoteText });
       navigation.goBack();
     } catch (error) {
-      console.error('Failed to save the edited note.', error);
+      console.error("Error updating document:", error);
+    }
+  };
+
+  const deleteNote = async () => {
+    try {
+      await deleteDoc(doc(database, "notes", noteId));
+      navigation.goBack();
+    } catch (error) {
+      console.error("Error deleting document:", error);
     }
   };
 
@@ -30,15 +30,15 @@ export default function DetailScreen({ route, navigation }) {
       <Text>Full Note:</Text>
       <TextInput
         style={styles.noteInput}
-        multiline={true}
-        onChangeText={setNoteText}
-        value={noteText}
+        multiline
+        onChangeText={setEditedNoteText}
+        value={editedNoteText}
       />
-      <Button title="GEM" onPress={saveEditedNote} />
+      <Button title="Save" onPress={saveEditedNote} />
+      <Button title="Delete" onPress={deleteNote} />
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -55,6 +55,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     padding: 10,
-    textAlignVertical: 'top', 
+    textAlignVertical: 'top',
   },
 });
