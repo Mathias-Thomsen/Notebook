@@ -1,22 +1,20 @@
 import { doc, collection, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { database } from './firebaseConfig';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { database, storage } from './firebaseConfig';
 
 const useFirebase = () => {
-  const addNote = async (text) => {
-    if (text.trim()) {
-      try {
-        await addDoc(collection(database, "notes"), { text });
-      } catch (error) {
-        console.error("Error adding document: ", error);
-      }
+  const addOrUpdateNoteWithImage = async (noteId, text, imagePath) => {
+    let imageUrl = null;
+    if (imagePath) {
+      imageUrl = await uploadImage(imagePath, `notes/${noteId || new Date().getTime()}.jpg`);
     }
-  };
-
-  const updateNote = async (noteId, text) => {
-    try {
-      await updateDoc(doc(database, "notes", noteId), { text });
-    } catch (error) {
-      console.error("Error updating document:", error);
+  
+    if (noteId) {
+    
+      await updateDoc(doc(database, "notes", noteId), { text, imageUrl });
+    } else {
+      
+      await addDoc(collection(database, "notes"), { text, imageUrl });
     }
   };
 
@@ -28,7 +26,47 @@ const useFirebase = () => {
     }
   };
 
-  return { addNote, updateNote, deleteNote };
+  const uploadImage = async (imagePath, fileName) => {
+    if (imagePath) {
+      const res = await fetch(imagePath);
+      const blob = await res.blob();
+      const storageRef = ref(storage, fileName);
+      try {
+        await uploadBytes(storageRef, blob);
+        console.log("Image uploaded...");
+        return getDownloadURL(storageRef);
+      } catch (error) {
+        console.error("Upload failed", error);
+        throw error;
+      }
+    } else {
+      console.log("No image selected");
+    }
+  };
+
+  const downloadImage = async (fileName) => {
+    const storageRef = ref(storage, fileName);
+    try {
+      const url = await getDownloadURL(storageRef);
+      return url;
+    } catch (error) {
+      console.error("Error downloading image:", error);
+      throw error;
+    }
+  };
+
+  const deleteImage = async (fileName) => {
+    const storageRef = ref(storage, fileName);
+    try {
+      await deleteObject(storageRef);
+      console.log("Image deleted...");
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      throw error;
+    }
+  };
+
+  return { addOrUpdateNoteWithImage, deleteNote, uploadImage, downloadImage, deleteImage };
 };
 
 export default useFirebase;

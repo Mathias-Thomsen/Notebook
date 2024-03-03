@@ -3,12 +3,12 @@ import { View, Button, TextInput, FlatList, StatusBar, StyleSheet, Text } from '
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { collection } from 'firebase/firestore';
 import { database } from '../firebase/firebaseConfig';
-import useFirebase from '../firebase/useFirebase'; // Opdater stien efter behov
+import useFirebase from '../firebase/useFirebase'; 
 
 export default function HomeScreen({ navigation }) {
   const [text, setText] = useState('');
-  const { addNote } = useFirebase(); // Brug addNote fra useFirebase
-  const [values, loading, error] = useCollection(collection(database, "notes")); //Loading og error handling for bedre UI brugeroplevelse
+  const { addOrUpdateNoteWithImage } = useFirebase(); 
+  const [values, loading, error] = useCollection(collection(database, "notes")); 
   
   const data = values?.docs.map(doc => ({
     ...doc.data(),
@@ -22,8 +22,8 @@ export default function HomeScreen({ navigation }) {
     }
   
     try {
-      await addNote(text);
-      setText(''); // Reset text input efter at have tilføjet en note
+      await addOrUpdateNoteWithImage(text);
+      setText(''); 
     } catch (error) {
       alert('An error occurred while adding the note.');
       console.error("Error adding document: ", error);
@@ -35,7 +35,7 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.noteButtonContainer}>
       <Button
         title={item.text.substring(0, 30) + (item.text.length > 30 ? "..." : "")}
-        onPress={() => navigation.navigate("DetailPage", { noteId: item.id, noteText: item.text })}
+        onPress={() => navigation.navigate("DetailScreen", { noteId: item.id, noteText: item.text, noteImageUrl: item.imageUrl})}
       />
     </View>
   );

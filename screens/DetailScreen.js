@@ -1,48 +1,56 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import useFirebase from '../firebase/useFirebase'; // Opdater stien efter behov
+import { View, Text, TextInput, Button, StyleSheet, Image } from 'react-native';
+import useFirebase from '../firebase/useFirebase'; 
+import * as ImagePicker from 'expo-image-picker';
 
 export default function DetailScreen({ route, navigation }) {
-  const { noteId, noteText } = route.params;
+  const { noteId, noteText, noteImageUrl } = route.params; 
   const [editedNoteText, setEditedNoteText] = useState(noteText);
-  const { updateNote, deleteNote } = useFirebase(); // Brug updateNote og deleteNote fra useFirebase
+  const [imagePath, setImagePath] = useState(noteImageUrl); 
+  const { addNoteWithImage, deleteNote } = useFirebase();
 
-  const handleSaveEditedNote = async () => {
-    if (editedNoteText.trim().length === 0) {
-      alert('Note text cannot be empty. Then use the delete button');
-      return;
-    }
-  
+  const handlePickImage = async () => {
     try {
-      await updateNote(noteId, editedNoteText);
-      navigation.goBack();
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true
+      });
+      if (!result.canceled) {
+        setImagePath(result.assets[0].uri); 
+      }
     } catch (error) {
-      alert('An error occurred while saving the note.');
-      console.error("Error updating document:", error);
+      console.error("Error picking image:", error);
     }
   };
-  
+
+  const handleSave = async () => {
+    if (editedNoteText.trim()) {
+      await addNoteWithImage(noteId, editedNoteText, imagePath);
+      navigation.goBack();
+    } else {
+      alert('Note text cannot be empty.');
+    }
+  };
+
   const handleDeleteNote = async () => {
-    try {
-      await deleteNote(noteId);
-      navigation.goBack();
-    } catch (error) {
-      alert('An error occurred while deleting the note.');
-      console.error("Error deleting document:", error);
-    }
+    await deleteNote(noteId);
+    navigation.goBack();
   };
-  
 
   return (
     <View style={styles.container}>
-      <Text>Full Note:</Text>
       <TextInput
         style={styles.noteInput}
         multiline
         onChangeText={setEditedNoteText}
         value={editedNoteText}
       />
-      <Button title="Save" onPress={handleSaveEditedNote} />
+      {imagePath ? (
+        <Image source={{ uri: imagePath }} style={{ width: 300, height: 300 }} />
+      ) : (
+        <Text>No Image Selected</Text>
+      )}
+      <Button title="Pick Image" onPress={handlePickImage} />
+      <Button title="Save" onPress={handleSave} />
       <Button title="Delete" onPress={handleDeleteNote} />
     </View>
   );
@@ -56,8 +64,8 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   noteInput: {
-    height: 200,
-    width: '90%', 
+    height: 100,
+    width: '90%',
     borderColor: 'gray',
     borderWidth: 1,
     marginTop: 10,
