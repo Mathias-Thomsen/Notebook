@@ -22,7 +22,7 @@ export default function HomeScreen({ navigation }) {
     }
   
     try {
-      await addOrUpdateNoteWithImage(text);
+      await addOrUpdateNoteWithImage(null, text, null);
       setText(''); 
     } catch (error) {
       alert('An error occurred while adding the note.');
@@ -35,11 +35,15 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.noteButtonContainer}>
       <Button
         title={item.text.substring(0, 30) + (item.text.length > 30 ? "..." : "")}
-        onPress={() => navigation.navigate("DetailScreen", { noteId: item.id, noteText: item.text, noteImageUrl: item.imageUrl})}
+        onPress={() => navigation.navigate("DetailScreen", {
+          noteId: item.id,
+          noteText: item.text,
+          imageUrls: item.imageUrls || []
+        })}
       />
     </View>
   );
-
+  
   return (
     <View style={styles.container}>
       {loading && <Text>Loading...</Text>}
@@ -58,12 +62,13 @@ export default function HomeScreen({ navigation }) {
       <FlatList
         data={data}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.notesContainer}
       />
       <StatusBar style="auto" />
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({
