@@ -1,7 +1,7 @@
   import React, { useState } from 'react';
   import { View, Text, TextInput, Button, StyleSheet, Image, FlatList, TouchableWithoutFeedback, Alert } from 'react-native';
   import useFirebase from '../firebase/useFirebase'; 
-  import * as ImagePicker from 'expo-image-picker';
+k
 
   export default function DetailScreen({ route, navigation }) {
     const { noteId, noteText, imageUrls } = route.params; 
